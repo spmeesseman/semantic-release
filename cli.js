@@ -21,7 +21,7 @@ Usage:
     })
     .option('b', {alias: 'branch', describe: 'Branch to release from', type: 'string', group: 'Options'})
     .option('r', {alias: 'repository-url', describe: 'Repository URL', type: 'string', group: 'Options'})
-    .option('y', {alias: 'repository-type', describe: 'Repository type (git or svn)', type: 'string', group: 'Options'})
+    .option('rt',{alias: 'repository-type', describe: 'Repository type (git or svn)', type: 'string', group: 'Options'})
     .option('t', {alias: 'tag-format', describe: 'Git tag format', type: 'string', group: 'Options'})
     .option('p', {alias: 'plugins', describe: 'Plugins', ...stringList, group: 'Options'})
     .option('e', {alias: 'extends', describe: 'Shareable configurations', ...stringList, group: 'Options'})
