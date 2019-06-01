@@ -13,7 +13,7 @@ const getLastRelease = require('./lib/get-last-release');
 const {extractErrors} = require('./lib/utils');
 const getGitAuthUrl = require('./lib/get-git-auth-url');
 const getLogger = require('./lib/get-logger');
-const {fetch, verifyAuth, isBranchUpToDate, getGitHead, tag, push} = require('./lib/git');
+const {fetch, verifyAuth, isBranchUpToDate, getGitHead, tag, push} = require('./lib/repository');
 const getError = require('./lib/get-error');
 const {COMMIT_NAME, COMMIT_EMAIL} = require('./lib/definitions/constants');
 
@@ -59,27 +59,32 @@ async function run(context, plugins) {
 
   await verify(context);
 
-  options.repositoryUrl = await getGitAuthUrl(context);
-
-  try {
+  if (options.repoType === "git") {
+    options.repositoryUrl = await getGitAuthUrl(context);
     try {
-      await verifyAuth(options.repositoryUrl, options.branch, {cwd, env});
-    } catch (error) {
-      if (!(await isBranchUpToDate(options.branch, {cwd, env}))) {
-        logger.log(
-          `The local branch ${options.branch} is behind the remote one, therefore a new version won't be published.`
-        );
-        return false;
+      try {
+        await verifyAuth(options.repositoryUrl, options.branch, {cwd, env});
+      } catch (error) {
+        if (!(await isBranchUpToDate(options.branch, {cwd, env}))) {
+          logger.log(
+            `The local branch ${options.branch} is behind the remote one, therefore a new version won't be published.`
+          );
+          return false;
+        }
+  
+        throw error;
       }
-
-      throw error;
-    }
-  } catch (error) {
-    logger.error(`The command "${error.cmd}" failed with the error message ${error.stderr}.`);
-    throw getError('EGITNOPERMISSION', {options});
+    } catch (error) {
+      logger.error(`The command "${error.cmd}" failed with the error message ${error.stderr}.`);
+      throw getError('EGITNOPERMISSION', {options});
+    }  
+  }
+  else {
+    // TODO
+    //options.repositoryUrl = await getSvnAuthUrl(context);
   }
 
-  logger.success(`Allowed to push to the Git repository`);
+  logger.success(`Allowed to push to the ${options.repoType} repository`);
 
   await plugins.verifyConditions(context);
 
